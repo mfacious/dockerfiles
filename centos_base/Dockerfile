@@ -1,6 +1,6 @@
 # Base image to use, this must be set as the first line
 FROM centos:6
-MAINTAINER JianfuLi lijianfu@outlook.com
+MAINTAINER JianfuLi jianfu.li@outlook.com
 
 # Install repos
 RUN rpm -ivh http://mirror.overthewire.com.au/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm

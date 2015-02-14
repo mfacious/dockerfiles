@@ -1,6 +1,6 @@
 # Base image to use, this must be set as the first line
 FROM centos:base
-MAINTAINER JianfuLi lijianfu@outlook.com
+MAINTAINER JianfuLi jianfu.li@outlook.com
 
 # Install nginx
 RUN yum install -y nginx
