@@ -7,8 +7,6 @@ RUN yum install -y nginx
 
 # Install php
 RUN yum install -y php php-cli php-devel php-fpm php-imap php-ioncube-loader php-ldap php-mbstring php-mcrypt php-odbc php-opcache php-pdo php-pecl-amqp php-pecl-apcu php-pecl-crypto php-pecl-dio php-pecl-eio php-pecl-ev php-pecl-event php-pecl-gearman php-pecl-http php-pecl-igbinary php-pecl-imagick php-pecl-jsonc php-pecl-memcache php-pecl-memcached php-pecl-memprof php-pecl-mongo php-pecl-redis php-pecl-xhprof php-pecl-yaf php-xml php-mysql php-phalcon --enablerepo=remi,remi-php56
-# Config timezone
-RUN sed -ri 's/date.timezone =/date.timezone = \"Asia\/Shanghai\"/g' /etc/php.ini
 
 # Config nginx 
 RUN rm -rf /etc/nginx/nginx.conf
@@ -27,4 +25,4 @@ EXPOSE 80
 ENV ENVIRONMENT DEVELOPMENT
 
 # Start service
-CMD service nginx start && service php-fpm start && /usr/bin/wc 
+CMD service nginx start && service php-fpm start && /bin/bash 
