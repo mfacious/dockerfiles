@@ -10,4 +10,4 @@ RUN yum makecache
 RUN yum update -y
 
 # Start service
-CMD /usr/bin/wc 
+CMD /bin/bash
