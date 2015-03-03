@@ -6,7 +6,7 @@ RUN rpm -ivh http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm
 RUN yum install -y mysql-community-server mysql-community-client
 
 # Init mysql password
-RUN /usr/bin/mysqladmin -u root password '123456'
+RUN /etc/init.d/mysqld start && /usr/bin/mysqladmin -u root password '123456'
 
 # Expose mysql port
 EXPOSE 3306
