@@ -1,0 +1,106 @@
+#!/bin/bash
+# chkconfig:   2345 95 95
+# description: Docker Box Manager
+
+show_help() {
+    cat << EOF
+Usage: magicbox run [OPTIONs...]
+
+A docker container manage tool
+
+Options:
+  --name=""          Assign a name to the container
+  --image=""         Use docker image name
+  --port=[]          Publish a container's port to the host
+  --volume=[]        Bind mount a volume (e.g., from the host: /host:/container)
+
+Example:
+  magicbox run --image=centos:latest --name=demo --port=80 --port=22 --volume=/home/demo:/root
+EOF
+}
+
+get_docker_ids() {
+    docker ps -a | grep mb- | awk '{print $1}'
+}
+
+get_vip_from_container_name() {
+    awk -F '[/-]' '{print $4}'
+}
+
+get_vip_no_from_ip() {
+    awk -F '.' '{print $4}'
+}
+
+set_up_vip() {
+    ifconfig eth0:$1 $2 netmask 255.255.255.0 up
+}
+
+assign_vips() {
+    vips=`get_docker_ids | xargs -I{} docker inspect -f '{{.Name}}' {} | get_vip_from_container_name`
+    for vip in $vips; do
+        vip_no=`awk 'BEGIN{print "'$vip'"}' | get_vip_no_from_ip`
+        set_up_vip $vip_no $vip
+    done
+}
+
+bind_hosts() {
+    cat>/var/named/box.dev<<EOF
+\$TTL 1
+@ IN SOA localhost. root(1 1 1 1 1)
+@ IN NS localhost.
+@ IN A 127.0.0.1
+EOF
+    get_docker_ids | xargs -I{} docker inspect -f '{{.Name}}-{{.NetworkSettings.IPAddress}}' {} | awk -F '[/-]' '{print $3" IN A "$5}' >> /var/named/box.dev
+    /etc/init.d/named reload >/dev/null 2>&1
+}
+
+start_containers() {
+    get_docker_ids | xargs -I{} docker start {}
+}
+
+run_container() {
+    vip_no=`get_docker_ids | xargs -I{} docker inspect -f '{{.Name}}' {} | get_vip_from_container_name | get_vip_no_from_ip | awk 'BEGIN {m
+ax = 0} {if ($1>max) max=$1 fi} END {print max+1 }'`
+    if [ $vip_no -lt 100 ]; then
+        vip_no=101
+    fi
+
+    vip=192.168.137.$vip_no
+    set_up_vip $vip_no $vip    
+
+    dns="--dns=172.17.42.1 --dns=10.0.3.15 --dns=223.5.5.5 --dns=223.6.6.6 --dns=8.8.4.4 --dns=8.8.8.8"
+    args=`echo $* | awk -F '--' '{ for( i=2; i<=NF; i++) print $i}' | grep =`
+    name=""
+    image=""
+    ports=""
+    volumes=""
+    for arg in $args ; do
+        key=`echo $arg | awk -F '=' '{print $1}'`
+        value=`echo $arg | awk -F '=' '{print $2}'`
+        case "$key" in
+            name)   name="$value";;
+            image)  image="$value";;
+            port)   ports="$ports -p $vip:$value:$value";;
+            volume) volumes="$volumes -v $value";;
+        esac
+    done 
+    
+    docker run $volumes $ports --name=mb-$name-$vip $dns -h $name.box.dev -tid $image
+    echo $vip
+}
+
+
+case "$1" in
+    start)
+        assign_vips
+        start_containers
+        bind_hosts
+        ;;
+    run)
+        run_container $*
+        bind_hosts
+        ;;
+    *)
+        show_help >&2
+        exit 1
+esac
