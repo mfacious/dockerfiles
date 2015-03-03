@@ -1,10 +1,13 @@
 # Base image to use, this must be set as the first line
-FROM centos:base
+FROM centos:sshd
 MAINTAINER JianfuLi jianfu.li@outlook.com
 
 # Install nginx
 RUN rpm -ivh http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm
 RUN yum install -y nginx
+
+# Install libevent2
+RUN rpm -ivh ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/adam__bishop:/moonshot/CentOS_CentOS-6/x86_64/libevent-2.0.13-14.2.x86_64.rpm
 
 # Install php
 RUN rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
