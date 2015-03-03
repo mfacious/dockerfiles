@@ -27,4 +27,4 @@ EXPOSE 80
 ENV ENVIRONMENT DEVELOPMENT
 
 # Start service
-CMD service nginx start && service php-fpm start && /bin/bash 
+CMD /etc/init.d/sshd start && /etc/init.d/nginx start && /etc/init.d/php-fpm start && /bin/bash 
